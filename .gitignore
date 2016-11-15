@@ -1,0 +1,22 @@
+import pyes
+import elasticsearch
+   
+
+conn = pyes.es.ES('localhost:9200')
+bq = pyes.query.BoolQuery()
+
+tsf = pyes.filters.TermsFilter(field="text",values=["cve","vulnerability","exploit","virus","worm","shell","zombie","malware","rootkit","trojan"])
+
+fq = pyes.query.FilteredQuery(pyes.query.MatchAllQuery(), tsf)
+
+ESR = pyes.ESRange(field="created_at", from_value="Wed Jan 1 14:54:26 +0000 2014", to_value="Wed Dec 31 15:20:20 +0000 2014", 
+                   include_lower=True ,include_upper=False)
+rq = pyes.query.RangeQuery(qrange=ESR)
+
+bq.add_must(fq)
+bq.add_must(rq)
+
+
+result = conn.search(query=bq, indices="twitter2", doc_types="tweet")
+
+len(result)
